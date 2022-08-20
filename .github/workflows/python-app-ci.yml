@@ -1,0 +1,57 @@
+name: Continuous Integration
+
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to test on, in string format"
+        required: true
+        type: string
+      python-reqs-path:
+        description: "Path where the requirement files are located"
+        required: true
+        type: string
+
+
+jobs:
+
+  lint:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set up GitHub repository"
+        uses: actions/checkout@v2
+      - name: "Set up Python"
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: "Install Python dependencies"
+        run: |
+          pip install --no-cache-dir --upgrade pip setuptools wheel
+          pip install --no-cache-dir --requirement ${{ inputs.python-reqs-path }}/requirements-prod.txt
+          pip install --no-cache-dir --requirement ${{ inputs.python-reqs-path }}/requirements-lint.txt
+          pip list
+      - name: "Check code format"
+        run: |
+          make check
+
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set up GitHub repository"
+        uses: actions/checkout@v2
+      - name: "Set up Python"
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: "Install Python dependencies"
+        run: |
+          pip install --no-cache-dir --upgrade pip setuptools wheel
+          pip install --no-cache-dir --requirement ${{ inputs.python-reqs-path }}/requirements-prod.txt
+          pip install --no-cache-dir --requirement ${{ inputs.python-reqs-path }}/requirements-test.txt
+          pip list
+      - name: "Run tests"
+        run: |
+          make test
