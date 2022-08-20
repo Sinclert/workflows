@@ -1,0 +1,45 @@
+name: Continuous Integration
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node version to test on, in string format"
+        required: true
+        type: string
+      prettier-version:
+        description: "Prettier version to lint on, in string format"
+        required: true
+        type: string
+
+jobs:
+
+  lint:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set up GitHub repository"
+        uses: actions/checkout@v2
+      - name: "Set up Node"
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: "Install Prettier"
+        run: npm install -g prettier@${{ inputs.prettier-version }}
+      - name: "Check code format"
+        run: make check
+
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set up GitHub repository"
+        uses: actions/checkout@v2
+      - name: "Set up Node"
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: "Install Node dependencies"
+        run: npm install-clean
+      - name: "Run tests"
+        run: make test
